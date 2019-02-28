@@ -1,0 +1,277 @@
+// React
+
+class BasicCalculator extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      input: '',
+      display: '0',
+      flagNew: false
+    }
+    this.handleClear = this.handleClear.bind(this);
+    this.handleSqRoot = this.handleSqRoot.bind(this);
+    this.handlePercentage = this.handlePercentage.bind(this);
+    this.handleDivide = this.handleDivide.bind(this);
+    this.handleMultiply = this.handleMultiply.bind(this);
+    this.handleSubtract = this.handleSubtract.bind(this);
+    this.handleAdd = this.handleAdd.bind(this);
+    this.handleEquals = this.handleEquals.bind(this);
+    this.handleDecimal = this.handleDecimal.bind(this);
+    this.handleNine = this.handleNine.bind(this);
+    this.handleEight = this.handleEight.bind(this);
+    this.handleSeven = this.handleSeven.bind(this);
+    this.handleSix = this.handleSix.bind(this);
+    this.handleFive = this.handleFive.bind(this);
+    this.handleFour = this.handleFour.bind(this);
+    this.handleThree = this.handleThree.bind(this);
+    this.handleTwo = this.handleTwo.bind(this);
+    this.handleOne = this.handleOne.bind(this);
+    this.handleZero = this.handleZero.bind(this);
+    this.handleKeyPress = this.handleKeyPress.bind(this);
+    this.handleBasicOperator = this.handleBasicOperator.bind(this);
+    this.handleNatural = this.handleNatural.bind(this);
+  }
+  handleClear() {
+    this.setState({
+      display: '0',
+      input: '',
+      flagNew: false
+    });
+  }
+  
+  handleBasicOperator(oper) {
+    if (this.state.flagNew) {
+      this.setState({
+        input: this.state.display.toString() + oper,
+        display: oper,
+        flagNew: false
+      });
+    } else
+    if (/^\u23B7*\d+\.*\d*%*$|^\d+\u23B7+\d+%*$/.test(this.state.display) && this.state.display !== '0' && !/\d\.$/.test(this.state.display)) {
+      this.setState({
+        input: this.state.input.concat(this.state.display + oper)
+      });
+      this.setState({
+        display: oper,
+        //input: this.state.input.concat(oper)
+      });
+    } else if (/[\+\-×÷\u23B7]$/.test(this.state.display) && /[\+\-×÷]$/.test(this.state.input)) {
+      this.setState({
+        display: oper,
+        input: this.state.input.slice(0, this.state.input.length - 1).concat(oper)
+      });
+    }
+  }
+  
+  handleNatural(num) {
+    if (this.state.flagNew) {
+      this.setState({
+        display: num,
+        input: '',
+        flagNew: false
+      });
+    } else if (/[\.1-9\u23B7]+/.test(this.state.display) && this.state.display.length < 10) {
+      this.setState({
+      display: this.state.display.concat(num),
+      //input: this.state.input.concat(num)
+    });
+    } else if(/[\+\-×÷%]/.test(this.state.display) || this.state.display === '0') {
+      this.setState({
+      display: num,
+      //input: this.state.input.concat(num)
+    });
+    }
+  }
+  
+  handleSqRoot() {
+    if (!/^0\.$|^\d*\u23B7+\d*/.test(this.state.display)) {
+      this.handleNatural('\u23B7');
+    }
+  }
+  handlePercentage() {
+    if (/[1-9]/.test(this.state.display) && this.state.display[this.state.display.length - 1] !== '.' && !/%/.test(this.state.display)) {
+      this.handleNatural('%');
+    }
+  }
+  handleDivide() {
+      this.handleBasicOperator('÷');
+  }
+  handleMultiply() {
+    this.handleBasicOperator('×');
+  }
+  handleSubtract() {
+    this.handleBasicOperator('-');
+  }
+  handleAdd() {
+    this.handleBasicOperator('+');
+  }
+  handleEquals() {
+    if (/[^\+\-×÷]/.test(this.state.display)) {
+    //if (/^\u23B7*\d+\.*\d*%*$|^\d+\u23B7+\d+%*$/.test(this.state.display)) { 
+      /*this.setState({
+        input: this.state.input.concat(this.state.display)
+      });*/
+      //console.log(this.state.input + this.state.display);
+      let input = (this.state.input + this.state.display).split('');
+      let expression = [];
+      input.forEach(char => {
+        if (/\d|[\+\-\.]/.test(char)) {
+          expression.push(char);
+        } else if (char === '×')  {
+          expression.push('*');
+        } else if (char === '÷') {
+          expression.push('/');
+        } else if (char === '\u23B7') {
+          expression.push('Math.sqrt')
+        } else if (char === '%') {
+          expression.push('/100')
+        }
+      });
+      expression = expression.join('').replace(/(\d+)Math\.sqrt(\d+)/g, '$1*Math.sqrt($2)').replace(/Math\.sqrt(\d+)/g, 'Math.sqrt($1)');
+      //console.log(expression);
+      let output = parseFloat(eval(expression).toPrecision(8)).toString();
+      this.setState({
+        display: output,
+        input: this.state.input + this.state.display,
+        flagNew: true
+      })
+    }
+  }
+  
+  handleDecimal() {
+    if (this.state.display === '0') {
+      this.setState({
+        display: this.state.display.concat('.'),
+        //input: this.state.input[this.state.input.length - 1] === '0' ? this.state.input.concat('.') : this.state.input.concat('0.')
+      });
+    } else if(/[\+\-×÷\u23B7%]/.test(this.state.display)) {
+      this.setState({
+        display: '0.',
+        //input: this.state.input.concat('0.')
+      });
+    } else if(/^[1-9][0-9]*/.test(this.state.display) && /^\d*[^\.]\d*$/.test(this.state.display) && this.state.display.length < 10) {
+      this.setState({
+        display: this.state.display.concat('.'),
+        //input: this.state.input.concat('.')
+      });
+    }
+  }
+  handleNine() {
+    this.handleNatural('9');
+  }
+  handleEight() {
+    this.handleNatural('8');
+  }
+  handleSeven() {
+    this.handleNatural('7');
+  }
+  handleSix() {
+    this.handleNatural('6');
+  }
+  handleFive() {
+    this.handleNatural('5');
+  }
+  handleFour() {
+    this.handleNatural('4');
+  }
+  handleThree() {
+    this.handleNatural('3');
+  }
+  handleTwo() {
+    this.handleNatural('2');
+  }
+  handleOne() {
+     this.handleNatural('1');
+  }
+  handleZero() {
+    if (/[\.1-9]+/.test(this.state.display) && this.state.display.length < 10) {
+      this.setState({
+      display: this.state.display.concat('0'),
+      //input: this.state.input.concat('0')
+    });
+    } else if(/[\+\-×÷\u23B7%]/.test(this.state.display)) {
+      this.setState({
+      display: '0',
+      //input: this.state.input.concat('0')
+    });
+    } else if(this.state.display === '0' && this.state.input === '') {
+      this.setState({
+        //input: this.state.input.concat('0')
+      });
+    }
+  }
+  componentDidMount() {
+    document.addEventListener('keydown', this.handleKeyPress);
+  }
+  componentWillUnmount() {
+    document.removeEventListener('keydown', this.handleKeyPress);
+  }
+  handleKeyPress(event) {
+    const lookupObj = {
+      zero: 48,
+      one: 49,
+      two: 50,
+      three: 51,
+      four: 52,
+      five: 53,
+      six: 54,
+      seven: 55,
+      eight: 56,
+      nine: 57,
+      decimal: 190,
+      add: 187,
+      subtract: 189,
+      multiply: 77,
+      divide: 68,
+      equals: 13,
+      'sq-root': 82,
+      percentage: 80,
+      clear: 8
+    }
+    for (let prop in lookupObj) {
+      if (event.keyCode === lookupObj[prop]) {
+        document.getElementById(prop).click();
+      }
+    }
+  }
+  render() {
+    return (
+    <div>
+        <div id='calculator'>
+          <div id='lcd'>
+          <div id='input'>{this.state.input}</div>
+          <div id='display'>{this.state.display}</div>
+        </div>
+          <div id='pad-container'>
+           <button id='clear' className='btn calc-pad' onClick={this.handleClear}>CE</button>
+          <button id='sq-root' className='btn calc-pad' onClick={this.handleSqRoot}>&#9143;</button>
+          <button id='percentage' className='btn calc-pad' onClick={this.handlePercentage}>%</button>
+          <button id='divide' className='btn calc-pad' onClick={this.handleDivide}>&divide;</button>
+          <button id='seven' className='btn calc-pad' onClick={this.handleSeven}>7</button>
+          <button id='eight' className='btn calc-pad' onClick={this.handleEight}>	8</button>
+          <button id='nine' className='btn calc-pad' onClick={this.handleNine}>9</button>
+          <button id='multiply' className='btn calc-pad' onClick={this.handleMultiply}>&times;</button>
+          <button id='four' className='btn calc-pad' onClick={this.handleFour}>4</button>
+          <button id='five' className='btn calc-pad' onClick={this.handleFive}>	5</button>
+          <button id='six' className='btn calc-pad' onClick={this.handleSix}>6</button>
+          <button id='subtract' className='btn calc-pad' onClick={this.handleSubtract}>-</button>
+          <button id='one' className='btn calc-pad' onClick={this.handleOne}>1</button>
+          <button id='two' className='btn calc-pad' onClick={this.handleTwo}>	2</button>
+          <button id='three' className='btn calc-pad' onClick={this.handleThree}>3</button>
+          <button id='add' className='btn calc-pad' onClick={this.handleAdd}>+</button>
+         <button id='zero' className='btn calc-pad' onClick={this.handleZero}>0</button>
+          <button id='decimal' className='btn calc-pad' onClick={this.handleDecimal}>.</button>
+          <button id='equals' className='btn calc-pad' onClick={this.handleEquals}>=</button> 
+        </div>
+        </div>
+        <div id='credit'>
+          Javascript Calculator By
+          <br/>
+          <a href='https://codepen.io/yoelvis' target='_blank'>Yoelvis Jimenez</a>
+        </div>
+    </div>
+    );
+  }
+}
+
+ReactDOM.render(<BasicCalculator/>, document.getElementById('root'));
